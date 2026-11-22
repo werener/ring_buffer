@@ -26,10 +26,11 @@ typedef struct {
  *
  * @param capacity Maximum amount of elements that can be stored.
  * @param item_size Size of a single element in bytes.
- * @return The created ring buffer. On failure, returns a buffer with zero
+ * @return The created ring buffer. On failure, returns a ring buffer with zero
  * `capacity` and `item_size`.
  *
  * @note The total size of the buffer is capped at `MAX_ALLOWED_SIZE_BYTES`.
+ * Underlying buffer is allocated on the heap.
  */
 rbuf_t rbuf_create(size_t capacity, size_t item_size);
 
@@ -41,8 +42,27 @@ rbuf_t rbuf_create(size_t capacity, size_t item_size);
  * @return Pointer to the created ring buffer, or `NULL` on failure.
  *
  * @note The total size of the buffer is capped at `MAX_ALLOWED_SIZE_BYTES`.
+ * Underlying buffer is allocated on the heap.
  */
 rbuf_t *rbuf_allocate(size_t capacity, size_t item_size);
+
+/**
+ * @brief Initializes a new ring buffer.
+ *
+ * @param rbuf Pointer to a user-owned memory for, where the created buffer will
+ * be written.
+ * @param backing_memory Pointer to a user-owned memory for undelying buffer of
+ * the ring buffer.
+ * @param capacity Maximum amount of elements that can be stored in the backing
+ * memory.
+ * @param item_size Size of a single element in bytes.
+ * @return `true` on success, `false` on failure.
+ *
+ * @note The total count of the buffer is capped at `MAX_ALLOWED_SIZE_BYTES`.
+ * Underlying buffer is owned by the user.
+ */
+bool rbuf_init(rbuf_t *rbuf, void *restrict backing_memory, size_t capacity,
+               size_t item_size);
 
 /**
  * @brief Destroys a stack-allocated ring buffer.

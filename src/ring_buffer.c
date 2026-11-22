@@ -10,13 +10,12 @@
         }                                                                      \
     } while (0)
 
-// Helpers
+const size_t MAX_ALLOWED_SIZE_BYTES = 1024 * 1024 * 4; // 4 MB
 
 // Wrapping increment
 static inline size_t wrap_inc(size_t idx, size_t cap) {
     return (idx + 1 == cap) ? 0 : idx + 1;
 }
-
 // Wrapping decrement
 static inline size_t wrap_dec(size_t idx, size_t cap) {
     return (idx == 0) ? cap - 1 : idx - 1;
@@ -25,40 +24,71 @@ static inline size_t wrap_dec(size_t idx, size_t cap) {
 static inline void *rbuf_get_slot_at(const rbuf_t *rbuf, size_t idx) {
     return (uint8_t *)rbuf->buffer + (idx * rbuf->item_size);
 }
+// Limit maximum buffer size
+static inline size_t clamp_capacity(size_t capacity, size_t item_size) {
+    if (item_size == 0 || capacity == 0) {
+        return 0;
+    }
+    size_t max_cap = MAX_ALLOWED_SIZE_BYTES / item_size;
+    return (capacity > max_cap) ? max_cap : capacity;
+}
 
-const size_t MAX_ALLOWED_SIZE_BYTES = 1024 * 1024 * 4; // 4 MB
+bool rbuf_init(rbuf_t *rbuf, void *restrict backing_memory, size_t capacity,
+               size_t item_size) {
+    capacity = clamp_capacity(capacity, item_size);
+    if (capacity == 0) {
+        return false;
+    }
 
-rbuf_t rbuf_create(size_t capacity, size_t item_size) {
-    if (item_size == 0 || capacity == 0)
-        return (rbuf_t){0};
-    if (capacity > MAX_ALLOWED_SIZE_BYTES / item_size)
-        capacity = MAX_ALLOWED_SIZE_BYTES / item_size;
+    ASSERT_NOT_NULL_OR(rbuf, return false;);
+    ASSERT_NOT_NULL_OR(backing_memory, return false;);
 
-    rbuf_t rbuf = {
-        .buffer = malloc(capacity * item_size),
+    *rbuf = (rbuf_t){
+        .buffer = backing_memory,
         .capacity = capacity,
         .count = 0,
         .item_size = item_size,
         .tail = 0,
         .head = 0,
     };
-    ASSERT_NOT_NULL_OR(rbuf.buffer, return (rbuf_t){0};);
+    return true;
+}
+
+rbuf_t rbuf_create(size_t capacity, size_t item_size) {
+    capacity = clamp_capacity(capacity, item_size);
+    if (capacity == 0) {
+        return (rbuf_t){0};
+    }
+
+    rbuf_t rbuf;
+    void *undelying_buf = malloc(capacity * item_size);
+    if (rbuf_init(&rbuf, undelying_buf, capacity, item_size) == false)
+        return (rbuf_t){0};
 
     return rbuf;
 }
 
 rbuf_t *rbuf_allocate(size_t capacity, size_t item_size) {
-    rbuf_t stack_rbuf = rbuf_create(capacity, item_size);
-    ASSERT_NOT_NULL_OR(stack_rbuf.buffer, return NULL;);
+    capacity = clamp_capacity(capacity, item_size);
+    if (capacity == 0) {
+        return NULL;
+    }
 
     rbuf_t *rbuf = malloc(sizeof(rbuf_t));
-    ASSERT_NOT_NULL_OR(rbuf, {
-        rbuf_destroy(&stack_rbuf);
-        return NULL;
-    });
+    ASSERT_NOT_NULL_OR(rbuf, { return NULL; });
 
-    *rbuf = stack_rbuf;
+    void *undelying_buf = malloc(capacity * item_size);
+    if (rbuf_init(rbuf, undelying_buf, capacity, item_size) == false) {
+        free(rbuf);
+        return NULL;
+    }
+
     return rbuf;
+}
+
+void rbuf_deinit(rbuf_t *rbuf) {
+    ASSERT_NOT_NULL_OR(rbuf, return;);
+    *rbuf = (rbuf_t){0};
 }
 
 void rbuf_destroy(rbuf_t *rbuf) {
@@ -69,7 +99,6 @@ void rbuf_destroy(rbuf_t *rbuf) {
 }
 
 void rbuf_free(rbuf_t *rbuf) {
-    ASSERT_NOT_NULL_OR(rbuf, return;);
     rbuf_destroy(rbuf);
     free(rbuf);
 }
