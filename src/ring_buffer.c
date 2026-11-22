@@ -10,8 +10,6 @@
         }                                                                      \
     } while (0)
 
-const size_t MAX_ALLOWED_SIZE_BYTES = 1024 * 1024 * 4; // 4 MB
-
 // Wrapping increment
 static inline size_t wrap_inc(size_t idx, size_t cap) {
     return (idx + 1 == cap) ? 0 : idx + 1;
