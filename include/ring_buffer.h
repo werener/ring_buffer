@@ -3,18 +3,19 @@
  * @brief Ring buffer data structure and operations.
  */
 
-/** @brief Maximum allowed size of a ring buffer in bytes. */
-
 #pragma once
 #include <stdbool.h>
 #include <stddef.h>
 
+/** @brief Maximum allowed size of a ring buffer in bytes. */
 extern const size_t MAX_ALLOWED_SIZE_BYTES;
 
+/** @brief Ring buffer data structure, supporting both LIFO and FIFO operations.
+ */
 typedef struct {
     void *buffer;     // pointer to a buffer's in-memory location
     size_t capacity;  // maximum amount of items in the buffer
-    size_t size;      // amount of items currently in the buffer
+    size_t count;     // amount of items currently in the buffer
     size_t item_size; // size of one stored element in bytes
     size_t tail;      // index of the newest (back) element
     size_t head;      // index of the oldest (front) element

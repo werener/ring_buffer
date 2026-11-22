@@ -37,7 +37,7 @@ rbuf_t rbuf_create(size_t capacity, size_t item_size) {
     rbuf_t rbuf = {
         .buffer = malloc(capacity * item_size),
         .capacity = capacity,
-        .size = 0,
+        .count = 0,
         .item_size = item_size,
         .tail = 0,
         .head = 0,
@@ -74,7 +74,7 @@ void rbuf_free(rbuf_t *rbuf) {
     free(rbuf);
 }
 
-bool rbuf_is_empty(const rbuf_t *rbuf) { return rbuf->size == 0; }
+bool rbuf_is_empty(const rbuf_t *rbuf) { return rbuf->count == 0; }
 
 const void *rbuf_peek_tail(const rbuf_t *rbuf) {
     if (rbuf_is_empty(rbuf))
@@ -111,12 +111,12 @@ void rbuf_push_tail(rbuf_t *rbuf, const void *restrict element) {
         // First item lands at index 0; both tail and head point to it
         rbuf->tail = 0;
         rbuf->head = 0;
-        rbuf->size = 1;
+        rbuf->count = 1;
     } else {
         rbuf->tail = wrap_inc(rbuf->tail, rbuf->capacity);
 
-        if (rbuf->size < rbuf->capacity)
-            rbuf->size++;
+        if (rbuf->count < rbuf->capacity)
+            rbuf->count++;
         else
             // Overwrote the oldest element, so advance head
             rbuf->head = wrap_inc(rbuf->head, rbuf->capacity);
@@ -130,12 +130,12 @@ void rbuf_push_head(rbuf_t *rbuf, const void *restrict element) {
         // First item lands at index 0; both head and tail point to it
         rbuf->head = 0;
         rbuf->tail = 0;
-        rbuf->size = 1;
+        rbuf->count = 1;
     } else {
         rbuf->head = wrap_dec(rbuf->head, rbuf->capacity);
 
-        if (rbuf->size < rbuf->capacity)
-            rbuf->size++;
+        if (rbuf->count < rbuf->capacity)
+            rbuf->count++;
         else
             // Overwrote the element at tail, so retreat tail
             rbuf->tail = wrap_dec(rbuf->tail, rbuf->capacity);
@@ -149,8 +149,8 @@ bool rbuf_pop_tail(rbuf_t *rbuf) {
         return false;
     }
 
-    rbuf->size--;
-    if (rbuf->size == 0) {
+    rbuf->count--;
+    if (rbuf->count == 0) {
         rbuf->head = 0;
         rbuf->tail = 0;
     } else {
@@ -165,8 +165,8 @@ bool rbuf_pop_head(rbuf_t *rbuf) {
         return false;
     }
 
-    rbuf->size--;
-    if (rbuf->size == 0) {
+    rbuf->count--;
+    if (rbuf->count == 0) {
         rbuf->head = 0;
         rbuf->tail = 0;
     } else {

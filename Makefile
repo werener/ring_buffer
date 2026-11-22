@@ -7,7 +7,7 @@ TARGET_NAME=main
 
 all:
 	@mkdir -p build
-	$(CC) src/main.c src/ring_buffer.c -Wall -Wextra  -Iinclude -o build/main
+	$(CC) src/main.c src/ring_buffer.c -Wall -Wextra -Iinclude -o build/main
 run: all
 	./build/main
 clean:
