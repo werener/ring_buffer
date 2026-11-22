@@ -3,11 +3,11 @@
 #include <stdlib.h>
 #include <string.h>
 
-#define ASSERT_NOT_NULL_OR(p, ...)                                             \
-    do {                                                                       \
-        if ((p) == NULL) {                                                     \
-            __VA_ARGS__                                                        \
-        }                                                                      \
+#define ASSERT_NOT_NULL_OR(p, ...)                                                                                             \
+    do {                                                                                                                       \
+        if ((p) == NULL) {                                                                                                     \
+            __VA_ARGS__                                                                                                        \
+        }                                                                                                                      \
     } while (0)
 
 // Wrapping increment
@@ -24,19 +24,17 @@ static inline void *rbuf_get_slot_at(const rbuf_t *rbuf, size_t idx) {
 }
 // Limit maximum buffer size
 static inline size_t clamp_capacity(size_t capacity, size_t item_size) {
-    if (item_size == 0 || capacity == 0) {
+    if (item_size == 0 || capacity == 0)
         return 0;
-    }
+
     size_t max_cap = MAX_ALLOWED_SIZE_BYTES / item_size;
     return (capacity > max_cap) ? max_cap : capacity;
 }
 
-bool rbuf_init(rbuf_t *rbuf, void *restrict backing_memory, size_t capacity,
-               size_t item_size) {
+bool rbuf_init(rbuf_t *rbuf, void *restrict backing_memory, size_t capacity, size_t item_size) {
     capacity = clamp_capacity(capacity, item_size);
-    if (capacity == 0) {
+    if (capacity == 0)
         return false;
-    }
 
     ASSERT_NOT_NULL_OR(rbuf, return false;);
     ASSERT_NOT_NULL_OR(backing_memory, return false;);
@@ -54,9 +52,8 @@ bool rbuf_init(rbuf_t *rbuf, void *restrict backing_memory, size_t capacity,
 
 rbuf_t rbuf_create(size_t capacity, size_t item_size) {
     capacity = clamp_capacity(capacity, item_size);
-    if (capacity == 0) {
+    if (capacity == 0)
         return (rbuf_t){0};
-    }
 
     rbuf_t rbuf;
     void *undelying_buf = malloc(capacity * item_size);
@@ -68,9 +65,8 @@ rbuf_t rbuf_create(size_t capacity, size_t item_size) {
 
 rbuf_t *rbuf_allocate(size_t capacity, size_t item_size) {
     capacity = clamp_capacity(capacity, item_size);
-    if (capacity == 0) {
+    if (capacity == 0)
         return NULL;
-    }
 
     rbuf_t *rbuf = malloc(sizeof(rbuf_t));
     ASSERT_NOT_NULL_OR(rbuf, { return NULL; });
@@ -101,7 +97,9 @@ void rbuf_free(rbuf_t *rbuf) {
     free(rbuf);
 }
 
-bool rbuf_is_empty(const rbuf_t *rbuf) { return rbuf->count == 0; }
+bool rbuf_is_empty(const rbuf_t *rbuf) {
+    return rbuf->count == 0;
+}
 
 const void *rbuf_peek_tail(const rbuf_t *rbuf) {
     if (rbuf_is_empty(rbuf))
@@ -172,9 +170,8 @@ void rbuf_push_head(rbuf_t *rbuf, const void *restrict element) {
 }
 
 bool rbuf_pop_tail(rbuf_t *rbuf) {
-    if (rbuf_is_empty(rbuf)) {
+    if (rbuf_is_empty(rbuf))
         return false;
-    }
 
     rbuf->count--;
     if (rbuf->count == 0) {
@@ -188,9 +185,8 @@ bool rbuf_pop_tail(rbuf_t *rbuf) {
 }
 
 bool rbuf_pop_head(rbuf_t *rbuf) {
-    if (rbuf_is_empty(rbuf)) {
+    if (rbuf_is_empty(rbuf))
         return false;
-    }
 
     rbuf->count--;
     if (rbuf->count == 0) {

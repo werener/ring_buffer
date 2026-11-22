@@ -44,8 +44,7 @@ typedef struct {
  * @note The total count of the buffer is capped at `MAX_ALLOWED_SIZE_BYTES`.
  * Underlying buffer is owned by the user.
  */
-bool rbuf_init(rbuf_t *rbuf, void *restrict backing_memory, size_t capacity,
-               size_t item_size);
+bool rbuf_init(rbuf_t *rbuf, void *restrict backing_memory, size_t capacity, size_t item_size);
 
 /**
  * @brief Deinitializes a ring buffer.
